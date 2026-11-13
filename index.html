@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>飲料團購訂購系統</title>
+<style>
+  :root { --primary: #2b5876; --accent: #ff7e5f; --bg: #f4f7f6; --card: #ffffff; }
+  * { box-sizing: border-box; font-family: "Microsoft JhengHei", sans-serif; }
+  body { margin: 0; background: var(--bg); color: #333; padding-bottom: 50px; }
+  header { background: var(--primary); color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+  header h1 { margin: 0; font-size: 1.3rem; }
+  .tab-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+  .tab-btn.active { background: var(--accent); }
+  .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+  .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  h2 { margin-top: 0; font-size: 1.15rem; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; }
+  .menu-img-box { text-align: center; background: #fafafa; border: 2px dashed #ddd; border-radius: 8px; padding: 15px; }
+  .menu-img-box img { max-width: 100%; max-height: 450px; border-radius: 8px; cursor: zoom-in; }
+  .form-group { margin-bottom: 15px; }
+  label.title { display: block; font-weight: bold; margin-bottom: 6px; }
+  input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+  .radio-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .radio-group label { cursor: pointer; }
+  .radio-group input { display: none; }
+  .radio-group span { display: inline-block; padding: 8px 14px; border: 1px solid #ccc; border-radius: 20px; background: #fff; font-size: 0.95rem; transition: 0.2s; }
+  .radio-group input:checked + span { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: bold; }
+  .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; color: #fff; background: var(--primary); }
+  .btn-accent { background: var(--accent); }
+  .btn-sm { padding: 6px 10px; font-size: 0.85rem; width: auto; }
+  .order-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+  .hidden { display: none; }
+  #lightbox { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; justify-content:center; align-items:center; z-index:999; }
+  #lightbox img { max-width:95%; max-height:95%; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="shopTitle">🥤 今日飲料團購</h1>
+  <div>
+    <button class="tab-btn active" onclick="switchTab('front', this)">前台點餐</button>
+    <button class="tab-btn" onclick="switchTab('admin', this)">後台設定</button>
+  </div>
+</header>
+
+<div class="container">
+  <!-- 前台點餐 -->
+  <div id="frontView">
+    <div class="card">
+      <h2>📋 店家菜單（點擊圖片可放大）</h2>
+      <div class="menu-img-box" id="menuDisplay">
+        <p style="color:#888;">尚未設定菜單圖片，請至右上角「後台設定」上傳或貼上圖片網址</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✍️ 填寫訂購內容</h2>
+      <div class="form-group">
+        <label class="title">訂購人姓名（選填）</label>
+        <input type="text" id="userName" placeholder="例如：王小明">
+      </div>
+      <div class="form-group">
+        <label class="title">品名 *</label>
+        <input type="text" id="drinkName" placeholder="請輸入飲料名稱（例如：珍珠奶茶）">
+      </div>
+      <div class="form-group">
+        <label class="title">大小杯 *</label>
+        <div class="radio-group">
+          <label><input type="radio" name="size" value="大杯" checked><span>大杯</span></label>
+          <label><input type="radio" name="size" value="中杯"><span>中杯</span></label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="title">冰塊（單選 1 項）*</label>
+        <div class="radio-group">
+          <label><input type="radio" name="ice" value="正常冰" checked><span>正常冰</span></label>
+          <label><input type="radio" name="ice" value="少冰"><span>少冰</span></label>
+          <label><input type="radio" name="ice" value="微冰"><span>微冰</span></label>
+          <label><input type="radio" name="ice" value="去冰"><span>去冰</span></label>
+          <label><input type="radio" name="ice" value="溫"><span>溫</span></label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="title">甜度（單選 1 項）*</label>
+        <div class="radio-group">
+          <label><input type="radio" name="sugar" value="全糖"><span>全糖</span></label>
+          <label><input type="radio" name="sugar" value="少糖"><span>少糖</span></label>
+          <label><input type="radio" name="sugar" value="半糖"><span>半糖</span></label>
+          <label><input type="radio" name="sugar" value="微糖" checked><span>微糖</span></label>
+          <label><input type="radio" name="sugar" value="無糖"><span>無糖</span></label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="title">加料（可自填）</label>
+        <input type="text" id="topping" placeholder="無加料請留空，或自行輸入（如：珍珠、椰果）">
+      </div>
+      <button class="btn btn-accent" onclick="addOrder()">＋ 加入訂購清單</button>
+    </div>
+
+    <div class="card">
+      <h2>🛒 已訂購清單 (<span id="orderCount">0</span> 杯)</h2>
+      <div id="orderList"><p style="color:#888;">目前還沒有點餐紀錄</p></div>
+      <div style="margin-top:15px; display:flex; gap:10px;">
+        <button class="btn" onclick="copyOrders()">📋 複製全部訂單（貼到 LINE）</button>
+        <button class="btn" style="background:#888; width:35%;" onclick="clearOrders()">清空</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 後台設定 -->
+  <div id="adminView" class="hidden">
+    <div class="card">
+      <h2>⚙️ 後台菜單管理</h2>
+      <div class="form-group">
+        <label class="title">團購標題 / 店家名稱</label>
+        <input type="text" id="adminTitle" placeholder="例如：50嵐 下午茶團購">
+      </div>
+      <div class="form-group">
+        <label class="title">方式 A：從手機/電腦選擇菜單圖片</label>
+        <input type="file" id="menuFile" accept="image/*" onchange="handleImageUpload(event)">
+      </div>
+      <div class="form-group">
+        <label class="title">方式 B：或貼上菜單圖片網址（推薦，分享給別人看得到）</label>
+        <input type="text" id="adminImgUrl" placeholder="https://...">
+      </div>
+      <button class="btn btn-accent" onclick="saveSettings()">💾 儲存後台設定</button>
+    </div>
+  </div>
+</div>
+
+<div id="lightbox" onclick="this.style.display='none'"><img id="lightboxImg" src=""></div>
+
+<script>
+  let orders = JSON.parse(localStorage.getItem('drink_orders') || '[]');
+  let settings = JSON.parse(localStorage.getItem('drink_settings') || '{"title":"🥤 今日飲料團購","img":""}');
+
+  function init() {
+    document.getElementById('shopTitle').innerText = settings.title;
+    document.getElementById('adminTitle').value = settings.title;
+    document.getElementById('adminImgUrl').value = settings.img.startsWith('data:') ? '' : settings.img;
+    renderMenu();
+    renderOrders();
+  }
+
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('frontView').classList.toggle('hidden', tab !== 'front');
+    document.getElementById('adminView').classList.toggle('hidden', tab !== 'admin');
+  }
+
+  function handleImageUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const maxW = 1000;
+        const scale = img.width > maxW ? maxW / img.width : 1;
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        settings.img = canvas.toDataURL('image/jpeg', 0.8);
+        alert('圖片已讀取！請記得點擊下方「儲存後台設定」。');
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function saveSettings() {
+    const title = document.getElementById('adminTitle').value.trim();
+    const url = document.getElementById('adminImgUrl').value.trim();
+    if (title) settings.title = title;
+    if (url) settings.img = url;
+    localStorage.setItem('drink_settings', JSON.stringify(settings));
+    init();
+    alert('設定已儲存！');
+  }
+
+  function renderMenu() {
+    const box = document.getElementById('menuDisplay');
+    if (settings.img) {
+      box.innerHTML = `<img src="${settings.img}" onclick="openLightbox(this.src)" alt="菜單圖片">`;
+    } else {
+      box.innerHTML = `<p style="color:#888;">尚未設定菜單圖片，請至右上角「後台設定」加入圖片</p>`;
+    }
+  }
+
+  function openLightbox(src) {
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightbox').style.display = 'flex';
+  }
+
+  function addOrder() {
+    const user = document.getElementById('userName').value.trim() || '匿名';
+    const drink = document.getElementById('drinkName').value.trim();
+    if (!drink) { alert('請輸入飲料品名！'); return; }
+    const size = document.querySelector('input[name="size"]:checked').value;
+    const ice = document.querySelector('input[name="ice"]:checked').value;
+    const sugar = document.querySelector('input[name="sugar"]:checked').value;
+    const topping = document.getElementById('topping').value.trim();
+
+    orders.push({ user, drink, size, ice, sugar, topping });
+    localStorage.setItem('drink_orders', JSON.stringify(orders));
+    document.getElementById('drinkName').value = '';
+    document.getElementById('topping').value = '';
+    renderOrders();
+  }
+
+  function removeOrder(index) {
+    orders.splice(index, 1);
+    localStorage.setItem('drink_orders', JSON.stringify(orders));
+    renderOrders();
+  }
+
+  function clearOrders() {
+    if (confirm('確定要清空所有訂單嗎？')) {
+      orders = [];
+      localStorage.setItem('drink_orders', JSON.stringify(orders));
+      renderOrders();
+    }
+  }
+
+  function renderOrders() {
+    document.getElementById('orderCount').innerText = orders.length;
+    const list = document.getElementById('orderList');
+    if (orders.length === 0) {
+      list.innerHTML = '<p style="color:#888;">目前還沒有點餐紀錄</p>';
+      return;
+    }
+    list.innerHTML = orders.map((o, i) => `
+      <div class="order-item">
+        <div>
+          <strong>[${o.user}] ${o.drink}</strong> (${o.size})<br>
+          <small style="color:#666;">${o.ice} / ${o.sugar}${o.topping ? ' / 加：' + o.topping : ''}</small>
+        </div>
+        <button class="btn btn-sm" style="background:#e74c3c;" onclick="removeOrder(${i})">刪除</button>
+      </div>
+    `).join('');
+  }
+
+  function copyOrders() {
+    if (orders.length === 0) { alert('目前沒有訂單可複製'); return; }
+    let text = `【${settings.title}】共 ${orders.length} 杯\n`;
+    orders.forEach((o, i) => {
+      text += `${i+1}. ${o.user}：${o.drink} (${o.size}/${o.ice}/${o.sugar}${o.topping ? '/加' + o.topping : ''})\n`;
+    });
+    navigator.clipboard.writeText(text).then(() => alert('已複製訂單內容，可直接到 LINE 貼上！'));
+  }
+
+  init();
+</script>
+</body>
+</html>
